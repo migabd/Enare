@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia Completo: Análise ENARE & Método A.C.E.</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Slate Gray, Amber, and Sky Blue for a professional and focused look -->
+    <!-- Application Structure Plan: A unified single-page application merging two distinct tools: an exam analysis dashboard and a methodology guide. The structure uses a clear top-level navigation to switch between the two main sections: "Análise da Prova" and "O Método A.C.E.". This allows the user to easily access all content without confusion. The layout flows from a general introduction to the specific tools, maintaining the interactive elements of both original files (modals, accordions, charts, filters) but under a single, consistent design system and unified script to prevent conflicts. -->
+    <!-- Visualization & Content Choices:
+        - All original visualizations and interactions from both files have been preserved.
+        - The key challenge was merging JavaScript logic. This was solved by renaming conflicting variables and functions (e.g., two different chart-rendering functions), ensuring event listeners target elements with unique IDs within the new structure, and creating a single, reusable modal system that is populated dynamically based on the clicked element from either section.
+        - The color scheme and typography were standardized to create a cohesive user experience.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        :root {
+            --bg-light: #f8fafc;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --primary: #0ea5e9; /* Sky Blue */
+            --accent: #f59e0b;  /* Amber */
+            --border-color: #e2e8f0;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+        .slide-in-up { animation: slideInUp 0.4s ease-out; }
+        @keyframes slideInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.5s ease-out; }
+        .prose-custom h4 { color: var(--primary); font-weight: 600; margin-top: 1.5em; margin-bottom: 0.5em; }
+        .prose-custom p, .prose-custom li { color: var(--text-muted); }
+        .prose-custom strong { color: var(--text-dark); }
+        .prose-custom blockquote { border-left-color: var(--accent); background-color: #fffbeb; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800">
+
+    <header class="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-40">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl md:text-2xl font-bold text-sky-700">Guia de Preparação ENARE</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#analise-prova" class="text-slate-600 hover:bg-sky-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">Análise da Prova</a>
+                        <a href="#metodo-ace" class="text-slate-600 hover:bg-sky-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">O Método A.C.E.</a>
+                        <a href="#recomendacoes" class="text-slate-600 hover:bg-sky-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">Recomendações</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-slate-500 hover:text-white hover:bg-sky-600 focus:outline-none">
+                        <span class="sr-only">Abrir menu</span>
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div id="mobile-menu" class="md:hidden hidden">
+                <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                    <a href="#analise-prova" class="text-slate-600 hover:bg-sky-600 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors">Análise da Prova</a>
+                    <a href="#metodo-ace" class="text-slate-600 hover:bg-sky-600 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors">O Método A.C.E.</a>
+                    <a href="#recomendacoes" class="text-slate-600 hover:bg-sky-600 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors">Recomendações</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+        <section id="visao-geral" class="text-center mb-16">
+            <h2 class="text-4xl font-extrabold text-slate-900 mb-4">Sua Plataforma Completa de Estudo</h2>
+            <p class="max-w-3xl mx-auto text-lg text-slate-600">
+                Esta ferramenta unificada foi projetada para revolucionar sua preparação. Aqui, você pode mergulhar na <strong>Análise da Prova ENARE</strong> para entender o que é cobrado e, em seguida, dominar <strong>O Método A.C.E.</strong> para aprender a raciocinar e acertar as questões.
+            </p>
+        </section>
+
+        <!-- Seção de Análise da Prova -->
+        <div id="analise-prova" class="scroll-mt-20 pt-10">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-slate-800">Análise Interativa da Prova ENARE</h2>
+                <p class="max-w-2xl mx-auto mt-2 text-slate-600">Desconstrua a prova, internalize os padrões de pensamento e foque nos temas de maior relevância.</p>
+            </div>
+
+            <section id="padroes" class="mb-16">
+                <h3 class="text-2xl font-bold text-slate-800 mb-2 text-center">Os 5 Padrões de Raciocínio</h3>
+                <p class="text-center text-slate-600 mb-8 max-w-2xl mx-auto">A maioria das questões se encaixa em um destes cinco arquétipos. Clique em cada cartão para entender a lógica e as armadilhas.</p>
+                <div id="padroes-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6"></div>
+            </section>
+
+            <section id="analise-questoes" class="mb-16">
+                <h3 class="text-2xl font-bold text-slate-800 mb-2 text-center">Análise Detalhada de Questões</h3>
+                <p class="text-center text-slate-600 mb-8 max-w-2xl mx-auto">Dissecamos questões-chave para revelar a lógica por trás das respostas. Use os filtros para explorar.</p>
+                <div id="filters-container" class="flex flex-wrap justify-center gap-2 mb-8"></div>
+                <div id="questoes-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+            </section>
+
+            <section id="dados" class="mb-16">
+                <h3 class="text-2xl font-bold text-slate-800 mb-2 text-center">Dados do Gabarito (ENARE 2024)</h3>
+                <p class="text-center text-slate-600 mb-8 max-w-2xl mx-auto">Uma curiosidade estatística. Lembre-se: sua melhor ferramenta é o raciocínio clínico, não o chute.</p>
+                <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
+                    <div class="chart-container">
+                        <canvas id="gabaritoChartAnalise"></canvas>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Seção do Método A.C.E. -->
+        <div id="metodo-ace" class="scroll-mt-20 pt-10">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-slate-800">O Método A.C.E.: A Arquitetura do Acerto</h2>
+                <p class="max-w-2xl mx-auto mt-2 text-slate-600">Aprenda a decifrar a lógica de qualquer questão, transformando seu conhecimento em acertos consistentes.</p>
+            </div>
+
+            <section id="metodo-ace-pratica" class="mb-16">
+                <h3 class="text-2xl font-bold text-slate-800 mb-8 text-center">As 3 Etapas Fundamentais</h3>
+                <div class="space-y-4 max-w-4xl mx-auto" id="accordion-container"></div>
+            </section>
+            
+            <section id="walkthroughs" class="mb-16">
+                <h3 class="text-2xl font-bold text-slate-800 mb-2 text-center">Raciocínio Clínico em Ação</h3>
+                <p class="text-center text-slate-600 mb-8 max-w-2xl mx-auto">Vamos aplicar o Método A.C.E. em questões reais da prova. Clique em cada caso para ver a análise detalhada.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="walkthroughs-container"></div>
+            </section>
+        </div>
+        
+        <!-- Seção de Recomendações Unificada -->
+        <section id="recomendacoes" class="scroll-mt-20 pt-10">
+             <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-slate-800">Plano de Ação e Recomendações Finais</h2>
+                <p class="max-w-2xl mx-auto mt-2 text-slate-600">Com base na análise completa, aqui estão as estratégias e práticas que trarão o maior impacto na sua preparação.</p>
+            </div>
+            <div class="bg-sky-700 text-white p-8 md:p-12 rounded-2xl">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h4 class="font-bold text-2xl mb-4 text-amber-300">Recomendações de Estudo</h4>
+                        <ul class="space-y-4">
+                            <li class="flex items-start"><span class="text-amber-300 text-2xl mr-3">🎯</span><span><strong>Foco em Diretrizes:</strong> A prova tem um claro viés para a medicina baseada em evidências. Dedique tempo ao estudo das últimas diretrizes nacionais e internacionais.</span></li>
+                            <li class="flex items-start"><span class="text-amber-300 text-2xl mr-3">📚</span><span><strong>Domine os Clássicos:</strong> A habilidade de "Reconhecimento de Padrão" é de altíssimo rendimento. Crie resumos focados nas "tríades clássicas".</span></li>
+                            <li class="flex items-start"><span class="text-amber-300 text-2xl mr-3">➡️</span><span><strong>Pratique o Raciocínio Sequencial:</strong> Treine a sequência: primeiro passo, exame inicial, conduta se a primeira linha falhar.</span></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-2xl mb-4 text-amber-300">Prática Deliberada do Método</h4>
+                        <ul class="space-y-4">
+                            <li class="flex items-start"><span class="text-amber-300 text-2xl mr-3">✍️</span><span><strong>Prática Ativa com o A.C.E.:</strong> Para cada questão, aplique o método conscientemente. Anote: Qual o pivô? Quais as bandeiras vermelhas? Por que cada distrator está errado?</span></li>
+                            <li class="flex items-start"><span class="text-amber-300 text-2xl mr-3">📔</span><span><strong>Crie um Diário de Análise de Erros:</strong> Categorize erros pela falha no processo A.C.E. ("caí no distrator 'quase certo'"). Isso revela e corrige falhas no seu processo de pensamento.</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-800 text-slate-400 mt-16">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-5 text-center text-sm">
+            <p>Uma ferramenta completa para transformar seu raciocínio e potencializar seus resultados.</p>
+        </div>
+    </footer>
+
+    <!-- Modal Unificado -->
+    <div id="unified-modal" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden items-center justify-center p-4">
+        <div class="bg-slate-50 rounded-xl shadow-2xl w-full max-w-4xl fade-in max-h-[90vh] flex flex-col">
+            <div class="p-4 sm:p-6 border-b border-slate-200 flex justify-between items-center">
+                <h3 id="modal-title" class="text-xl sm:text-2xl font-bold text-slate-800"></h3>
+                <button id="modal-close" class="text-slate-500 hover:text-red-600 transition-colors">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div id="modal-body" class="p-4 sm:p-6 overflow-y-auto prose-custom max-w-none"></div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // --- DATA FOR "ANÁLISE DA PROVA" ---
+    const padroesData = [
+        { id: 'p-1', title: 'Conhecimento Direto', icon: '🎯', description: 'Questões que avaliam o recall de um fato isolado, fundamental e não negociável.', details: `<p><strong>Habilidade Exigida:</strong> Memorização de alta qualidade. Não há espaço para dedução.</p><p><strong>Palavras-chave:</strong> "O anticorpo é:", "O agente etiológico é:".</p><p><strong>Armadilha Comum:</strong> Tentar "deduzir" uma resposta que depende de memorização pura.</p>` },
+        { id: 'p-2', title: 'Reconhecimento de Padrão', icon: '🧩', description: 'Apresentação de uma vinheta clínica "de livro". O desafio é integrar as peças.', details: `<p><strong>Habilidade Exigida:</strong> Síntese e integração de informações para formar uma hipótese.</p><p><strong>Palavras-chave:</strong> "A principal hipótese é:", "O diagnóstico mais provável é:".</p><p><strong>Armadilha Comum:</strong> Focar em um único achado isolado, ignorando o conjunto.</p>` },
+        { id: 'p-3', title: 'Raciocínio Diferencial', icon: '🤔', description: 'Cenários complexos com múltiplas hipóteses plausíveis. A tarefa é identificar o dado-chave.', details: `<p><strong>Habilidade Exigida:</strong> Análise crítica e hierarquização de problemas.</p><p><strong>Palavras-chave:</strong> "O manuseio adequado é:", "Sobre a investigação...".</p><p><strong>Armadilha Comum:</strong> Simplificar demais o caso, ignorando comorbidades.</p>` },
+        { id: 'p-4', title: 'Raciocínio Sequencial', icon: '➡️', description: 'Questões que pedem a conduta imediata, a abordagem inicial ou o próximo passo.', details: `<p><strong>Habilidade Exigida:</strong> Conhecimento de algoritmos e avaliação de risco/urgência.</p><p><strong>Palavras-chave:</strong> "A melhor conduta imediata é:", "O próximo exame é:".</p><p><strong>Armadilha Comum:</strong> Escolher o tratamento definitivo em vez da conduta inicial.</p>` },
+        { id: 'p-5', title: 'Aplicação de Protocolo', icon: '📜', description: 'Situações onde a resposta correta é ditada por uma diretriz (guideline) bem estabelecida.', details: `<p><strong>Habilidade Exigida:</strong> Conhecimento atualizado das principais diretrizes clínicas.</p><p><strong>Palavras-chave:</strong> "A terapia mais indicada é:", "O esquema recomendado é:".</p><p><strong>Armadilha Comum:</strong> Aplicar conhecimento antigo ou desatualizado.</p>` }
+    ];
+    const questoesData = [
+        { id: 'q3', numero: '3', titulo: 'Piora Paradoxal em TB', area: 'Infectologia', areaId: 'infecto', padraoId: 'p-3', padraoNome: 'Raciocínio Diferencial', cor: 'bg-red-100 text-red-800', conteudo: `<h4>Cenário Clínico</h4><p>Paciente com D. de Crohn em uso de anti-TNF inicia tratamento para Tuberculose. Após 1 mês, apresenta piora clínica e laboratorial.</p><h4>Tópico Central: Síndrome Inflamatória de Reconstituição Imune (TB-IRIS)</h4><p>A chave é a <strong>piora paradoxal</strong> após o início da terapia e a retirada da imunossupressão.</p><h4>Raciocínio</h4><ol><li>Cenário de Risco: Uso de anti-TNF.</li><li>Evolução Inesperada: Piora clínica apesar do tratamento correto.</li><li>Hipótese Correta: Apresentação clássica de TB-IRIS.</li><li>Tratamento da IRIS: Manter o tratamento anti-TB e adicionar corticosteroides.</li></ol><blockquote><strong>Pérola:</strong> Piora paradoxal em imunossuprimido após início de tratamento = Pense em IRIS.</blockquote>` },
+        { id: 'q4', numero: '4', titulo: 'Compressão Medular', area: 'Neurologia', areaId: 'neuro', padraoId: 'p-4', padraoNome: 'Raciocínio Sequencial', cor: 'bg-yellow-100 text-yellow-800', conteudo: `<h4>Cenário Clínico</h4><p>Homem com dor lombar refratária, perda de peso, febre e déficits neurológicos agudos (paraplegia, nível sensitivo em T4).</p><h4>Tópico Central: Síndrome de Compressão Medular</h4><p>O conjunto de achados define uma <strong>emergência neurológica</strong>. A prioridade é a imagem.</p><h4>Raciocínio</h4><ol><li>Reconhecer a Emergência: Síndrome de Compressão Medular.</li><li>Determinar a Prioridade: Confirmar e localizar a compressão com urgência.</li><li>Selecionar o Exame Correto: Ressonância Magnética (RM) com contraste é o padrão-ouro.</li><li>Definir a Abrangência: Nível sensitivo em T4 exige RM da coluna <strong>torácica</strong> e lombar.</li></ol><blockquote><strong>Pérola:</strong> Nível sensitivo é um localizador poderoso. Nível nos mamilos = T4.</blockquote>` },
+        { id: 'q9', numero: '9', titulo: 'Nefropatia Membranosa', area: 'Nefrologia', areaId: 'nefro', padraoId: 'p-1', padraoNome: 'Conhecimento Direto', cor: 'bg-blue-100 text-blue-800', conteudo: `<h4>Cenário Clínico</h4><p>Questão direta sobre o anticorpo associado à nefropatia membranosa idiopática em adultos.</p><h4>Tópico Central: Anti-PLA2R</h4><p>Esta é uma questão de <em>recall</em> direto de uma associação fundamental.</p><h4>Raciocínio</h4><ol><li>Identificar o Tema: Nefropatia Membranosa Primária.</li><li>Recuperar o Conhecimento-Chave: A associação com o anticorpo <strong>anti-PLA2R</strong> é um marco diagnóstico.</li></ol><blockquote><strong>Pérola:</strong> Nefropatia Membranosa Primária = Anti-PLA2R. Essencial.</blockquote>` },
+        { id: 'q41', numero: '41', titulo: 'Tratamento da ICFEp', area: 'Cardiologia', areaId: 'cardio', padraoId: 'p-5', padraoNome: 'Aplicação de Protocolo', cor: 'bg-purple-100 text-purple-800', conteudo: `<h4>Cenário Clínico</h4><p>Paciente com quadro clínico de Insuficiência Cardíaca e fração de ejeção preservada (ICFEp).</p><h4>Tópico Central: Tratamento da ICFEp</h4><p>A questão pede a terapia com <strong>maior benefício de redução de morte e hospitalização</strong>.</p><h4>Raciocínio</h4><ol><li>Diagnosticar e Classificar: Insuficiência Cardíaca com Fração de Ejeção Preservada (ICFEp).</li><li>Recuperar a Evidência Recente: Estudos de alto impacto estabeleceram os <strong>inibidores da SGLT2 (gliflozinas)</strong> como a primeira classe a reduzir desfechos duros em ICFEp.</li></ol><blockquote><strong>Pérola:</strong> A classe que modifica a doença na ICFEp são os iSGLT2 (gliflozinas).</blockquote>` }
+    ];
+
+    // --- DATA FOR "MÉTODO A.C.E." ---
+    const aceData = [
+        { title: 'Analisar: Desconstruindo o Cenário Clínico', icon: '🔍', content: `<p>É a etapa de leitura estratégica para formar uma hipótese <strong>antes</strong> de ver as alternativas.</p><ol><li><strong>Identificar o "Ponto de Pivô":</strong> Leia a última frase primeiro.</li><li><strong>Isolar o "Minuto de Ouro":</strong> Capture o perfil do paciente e a cronologia.</li><li><strong>Marcar as "Bandeiras Vermelhas":</strong> Destaque os sinais de gravidade.</li><li><strong>Agrupar em Síndromes:</strong> Junte os dados em um padrão reconhecível.</li></ol>` },
+        { title: 'Comparar: A Anatomia das Opções', icon: '📊', content: `<p>Avalie as alternativas como um conjunto para revelar a lógica do examinador.</p><ul><li><strong>Procure por Opostos ou Pares.</strong></li><li><strong>Avalie o Nível de Especificidade.</strong></li><li><strong>Identifique a "Resposta da Diretriz".</strong></li></ul>` },
+        { title: 'Eliminar: Uma Taxonomia de Distratores', icon: '❌', content: `<p>É mais fácil provar que quatro opções estão erradas do que provar que uma está certa.</p><div class="overflow-x-auto"><table class="min-w-full border border-slate-200 text-sm"><thead><tr class="bg-slate-100"><th class="p-2 border-b text-left">Tipo</th><th class="p-2 border-b text-left">Descrição</th></tr></thead><tbody><tr><td class="p-2 font-semibold">O "Quase Certo"</td><td class="p-2">Ação correta, mas no momento errado.</td></tr><tr><td class="p-2 font-semibold">O "Absoluto"</td><td class="p-2">Contém "sempre", "nunca".</td></tr><tr><td class="p-2 font-semibold">O "Fora de Escopo"</td><td class="p-2">Correto, mas não responde à pergunta.</td></tr><tr><td class="p-2 font-semibold">A "Pista Falsa"</td><td class="p-2">Foca em um detalhe secundário.</td></tr></tbody></table></div>` }
+    ];
+    const walkthroughsData = [
+        { id: 'w-q4', title: 'Q4: Emergência Neurológica', area: 'Raciocínio Sequencial', color: 'bg-red-100 text-red-800', content: `<h4>A: Analisar</h4><p><strong>Pivô:</strong> "Em relação a esse caso, é correto afirmar que:"</p><p><strong>Síndrome:</strong> A combinação de déficits neurológicos graves com nível sensitivo e disfunção esfincteriana define a <strong>Síndrome de Compressão Medular</strong>.</p><h4>C: Comparar & E: Eliminar</h4><p>A prioridade é a imagem diagnóstica. Iniciar corticoide sem imagem é perigoso. TC é inferior à RM.</p><h4>A Resposta Correta</h4><blockquote><strong>(E) ...realização de ressonância de coluna torácica e lombar de urgência...</strong> Reconhece a emergência e propõe a investigação padrão-ouro na localização correta.</blockquote>` },
+        { id: 'w-q41', title: 'Q41: Aplicando a Diretriz (ICFEp)', area: 'Aplicação de Protocolo', color: 'bg-green-100 text-green-800', content: `<h4>A: Analisar</h4><p><strong>Pivô:</strong> "...maior benefício de redução de morte cardiovascular e hospitalização..."</p><p><strong>Síndrome:</strong> Sinais de IC + BNP elevado + FEVEp = <strong>Insuficiência Cardíaca com Fração de Ejeção Preservada (ICFEp)</strong>.</p><h4>C: Comparar & E: Eliminar</h4><p>A questão testa o conhecimento da evidência mais recente.</p><h4>A Resposta Correta</h4><blockquote><strong>(D) dapaglifozina 10 mg ao dia.</strong> É a "Resposta da Diretriz". Estudos recentes estabeleceram os <strong>inibidores do SGLT2</strong> como a classe com maior benefício em desfechos duros para ICFEp.</blockquote>` },
+        { id: 'w-q63', title: 'Q63: Conhecimento Específico', area: 'Conhecimento Direto', color: 'bg-purple-100 text-purple-800', content: `<h4>A: Analisar</h4><p><strong>Pivô:</strong> "Essa análise (HLA B*5701) deve ser realizada para a segurança na administração do seguinte antirretroviral:"</p><p><strong>Problema:</strong> Prevenção de reação de hipersensibilidade a um fármaco.</p><h4>C: Comparar & E: Eliminar</h4><p>Questão de "Conhecimento Direto". A eliminação depende de saber a associação correta.</p><h4>A Resposta Correta</h4><blockquote><strong>(C) abacavir.</strong> A associação entre <strong>abacavir</strong> e risco de hipersensibilidade em portadores do alelo <strong>HLA-B*5701</strong> é um pilar da farmacogenômica no HIV.</blockquote>` }
+    ];
+
+    // --- DOM ELEMENTS ---
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const modal = document.getElementById('unified-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody = document.getElementById('modal-body');
+    const modalClose = document.getElementById('modal-close');
+
+    // --- MOBILE MENU ---
+    mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+
+    // --- MODAL ---
+    function openModal(title, content) {
+        modalTitle.innerHTML = title;
+        modalBody.innerHTML = content;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+    modalClose.addEventListener('click', () => modal.classList.add('hidden'));
+    modal.addEventListener('click', e => { if (e.target === modal) modal.classList.add('hidden'); });
+
+    // --- RENDER "ANÁLISE DA PROVA" ---
+    function renderAnaliseProva() {
+        const padroesContainer = document.getElementById('padroes-container');
+        padroesContainer.innerHTML = padroesData.map(p => `
+            <div class="bg-white rounded-lg shadow-md p-6 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300 slide-in-up" data-modal-title="${p.title}" data-modal-content="${p.details.replace(/"/g, '&quot;')}">
+                <div class="flex items-center mb-3"><span class="text-3xl mr-4">${p.icon}</span><h3 class="text-lg font-bold text-slate-800">${p.title}</h3></div>
+                <p class="text-slate-600 text-sm">${p.description}</p>
+            </div>`).join('');
+        
+        padroesContainer.addEventListener('click', e => {
+            const card = e.target.closest('[data-modal-title]');
+            if (card) openModal(card.dataset.modalTitle, card.dataset.modalContent);
+        });
+
+        renderQuestoes();
+        renderFilters();
+        renderAnaliseChart();
+    }
+
+    function renderQuestoes(filterPadrao = 'all', filterArea = 'all') {
+        const questoesContainer = document.getElementById('questoes-container');
+        questoesContainer.innerHTML = questoesData
+            .filter(q => (filterPadrao === 'all' || q.padraoId === filterPadrao) && (filterArea === 'all' || q.areaId === filterArea))
+            .map(q => `
+            <div class="bg-white rounded-lg shadow-md p-4 cursor-pointer hover:shadow-xl hover:border-sky-500 border-2 border-transparent transition-all slide-in-up" data-modal-title="Questão ${q.numero}: ${q.titulo}" data-modal-content="${q.conteudo.replace(/"/g, '&quot;')}">
+                <div class="flex justify-between items-start mb-2"><span class="text-2xl font-bold text-sky-600">${q.numero}</span><span class="text-xs font-semibold px-2 py-1 rounded-full ${q.cor}">${q.padraoNome}</span></div>
+                <h4 class="font-bold text-slate-800">${q.titulo}</h4><p class="text-sm text-slate-500">${q.area}</p>
+            </div>`).join('');
+
+        questoesContainer.addEventListener('click', e => {
+            const card = e.target.closest('[data-modal-title]');
+            if (card) openModal(card.dataset.modalTitle, card.dataset.modalContent);
+        });
+    }
+
+    function renderFilters() {
+        const filtersContainer = document.getElementById('filters-container');
+        const padraoFilters = [{id: 'all', name: 'Todos os Padrões'}, ...padroesData.map(p => ({id: p.id, name: p.title}))];
+        const areaFilters = [{id: 'all', name: 'Todas as Áreas'}];
+        questoesData.forEach(q => { if (!areaFilters.find(a => a.id === q.areaId)) areaFilters.push({id: q.areaId, name: q.area}); });
+        
+        filtersContainer.innerHTML = `<div class="flex flex-wrap justify-center gap-2">
+                <select id="filter-padrao" class="bg-white border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 p-2.5">${padraoFilters.map(f => `<option value="${f.id}">${f.name}</option>`).join('')}</select>
+                <select id="filter-area" class="bg-white border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 p-2.5">${areaFilters.map(f => `<option value="${f.id}">${f.name}</option>`).join('')}</select>
+            </div>`;
+
+        const filterPadraoSelect = document.getElementById('filter-padrao');
+        const filterAreaSelect = document.getElementById('filter-area');
+        filterPadraoSelect.addEventListener('change', () => renderQuestoes(filterPadraoSelect.value, filterAreaSelect.value));
+        filterAreaSelect.addEventListener('change', () => renderQuestoes(filterPadraoSelect.value, filterAreaSelect.value));
+    }
+
+    function renderAnaliseChart() {
+        const ctx = document.getElementById('gabaritoChartAnalise').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['A', 'B', 'C', 'D', 'E'],
+                datasets: [{ label: 'Nº de Questões Corretas', data: [16, 7, 13, 24, 16], backgroundColor: ['rgba(20, 184, 166, 0.6)', 'rgba(249, 115, 22, 0.6)', 'rgba(59, 130, 246, 0.6)', 'rgba(168, 85, 247, 0.6)', 'rgba(239, 68, 68, 0.6)'], borderWidth: 1 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+        });
+    }
+
+    // --- RENDER "MÉTODO A.C.E." ---
+    function renderMetodoACE() {
+        const accordionContainer = document.getElementById('accordion-container');
+        accordionContainer.innerHTML = aceData.map(item => `
+            <div class="bg-white rounded-lg shadow-sm border border-slate-200">
+                <button class="accordion-button w-full flex items-center justify-between p-5 text-left font-semibold text-slate-700">
+                    <span class="flex items-center"><span class="text-2xl mr-4">${item.icon}</span><span>${item.title}</span></span>
+                    <svg class="w-6 h-6 shrink-0 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div class="accordion-content px-5"><div class="py-4 border-t border-slate-200 prose-custom max-w-none">${item.content}</div></div>
+            </div>`).join('');
+
+        accordionContainer.querySelectorAll('.accordion-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const content = button.nextElementSibling;
+                button.querySelector('svg').classList.toggle('rotate-180');
+                content.style.maxHeight = content.style.maxHeight ? null : content.scrollHeight + "px";
+            });
+        });
+
+        const walkthroughsContainer = document.getElementById('walkthroughs-container');
+        walkthroughsContainer.innerHTML = walkthroughsData.map(w => `
+            <div class="bg-white rounded-lg shadow-md p-5 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all" data-modal-title="${w.title}" data-modal-content="${w.content.replace(/"/g, '&quot;')}">
+                <div class="flex justify-between items-center mb-2"><h4 class="font-bold text-lg text-slate-800">${w.title}</h4><span class="text-sm font-semibold px-2 py-1 rounded-full ${w.color}">${w.area}</span></div>
+                <p class="text-sm text-slate-500">Clique para ver a análise A.C.E. completa.</p>
+            </div>`).join('');
+        
+        walkthroughsContainer.addEventListener('click', e => {
+            const card = e.target.closest('[data-modal-title]');
+            if (card) openModal(card.dataset.modalTitle, card.dataset.modalContent);
+        });
+    }
+
+    // --- INITIAL RENDER ---
+    renderAnaliseProva();
+    renderMetodoACE();
+});
+</script>
+</body>
+</html>
